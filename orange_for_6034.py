@@ -17,12 +17,12 @@ if "orange" not in os.environ["LD_LIBRARY_PATH"]:
                                      ":"+os.environ['LD_LIBRARY_PATH'])
 
 #try:
-import orange
-import orngTree
-import orngTest
-import orngStat
-import orngEnsemble
-print "Orange version:",orange.version
+# import orange
+# import orngTree
+# import orngTest
+# import orngStat
+# import orngEnsemble
+# print "Orange version:",orange.version
 #except ImportError:
 #    raise "Did not find the Orange framework.  http://www.ailab.si/orange/"
 
@@ -40,7 +40,7 @@ def funcToMethod(func,clas,method_name=None):
 def cmstr(self):
     return ("<cm TruPos:%d FlsNeg:%d FlsPos:%d TruNeg:%d>" %
             (self.TP, self.FN, self.FP, self.TN))
-funcToMethod(cmstr,orngStat.ConfusionMatrix,"__str__")
+# funcToMethod(cmstr,Orange.evaluation.scoring.ConfusionMatrix,"__str__")
 
 def bill_identifier(bill_data):
     text = bill_data['number']

@@ -1,7 +1,7 @@
 from data_reader import *
 import math
 import orange_for_6034
-import orange
+# import orange # XXX
 
 class Classifier():
     """
@@ -318,7 +318,7 @@ class OrangeWrapperClassifier(Classifier):
 
 #>
 #< BoostOrangeClassifier
-
+''' # XXX
 class BoostOrangeClassifier(orange.Classifier):
     def __init__(self, domain, classifier):
         self.classVar = domain.classVar
@@ -364,6 +364,7 @@ class BoostOrangeLearner(orange.Learner):
 
 #>
 #< OrangeStandardClassifier
+''' # XXX
 
 class OrangeStandardClassifier(Classifier):
     """
