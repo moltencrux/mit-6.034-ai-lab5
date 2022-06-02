@@ -1,4 +1,3 @@
-from sets import Set as set
 from data_reader import *
 import math
 import orange_for_6034

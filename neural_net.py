@@ -60,7 +60,7 @@ class Input(ValuedElement,DifferentiableElement):
         
         returns: number (float or int)
         """
-        raise NotImplementedError, "Implement me!"
+        return self.get_value()
 
     def dOutdX(self, elem):
         """
@@ -71,7 +71,7 @@ class Input(ValuedElement,DifferentiableElement):
 
         returns: number (float or int)
         """
-        raise NotImplementedError, "Implement me!"
+        return 0
 
 class Weight(ValuedElement):
     """
@@ -170,7 +170,10 @@ class Neuron(DifferentiableElement):
 
         returns: number (float or int)
         """
-        raise NotImplementedError, "Implement me!"
+        weighted_input_sum = 0
+        for i, w in zip(self.get_inputs(), self.get_weights()):
+            weighted_input_sum += i.get_value() * w.get_value()
+        return 1.0 / (1.0 + math.exp(- weighted_input_sum))
 
     def dOutdX(self, elem):
         # Implement compute_doutdx instead!!
@@ -190,7 +193,25 @@ class Neuron(DifferentiableElement):
 
         returns: number (float/int)
         """
-        raise NotImplementedError, "Implement me!"
+        output = self.output()
+        doutdp = output * (1 - output)
+
+        if self.has_weight(elem):
+            for i, w in zip(self.get_inputs(), self.get_weights()):
+                if elem is w:
+                    return doutdp * i.output()
+        else:
+            input_sum = 0.0
+            for i, w in zip(self.get_inputs(), self.get_weights()):
+                if self.isa_descendant_weight_of(elem, w):
+                    input_sum += i.dOutdX(elem) * w.get_value()
+        return doutdp * input_sum
+        # elem is a weight? ZZZ
+        # need to know inputs
+        # need desired outputs here? or only on performance function?
+        # maybe more like delta_l
+        # return ((self.my_desired_val - self.get_input().output())
+        #        * self.get_input().dOutdX(elem))
 
     def get_weights(self):
         return self.my_weights
@@ -225,7 +246,7 @@ class PerformanceElem(DifferentiableElement):
         
         returns: number (float/int)
         """
-        raise NotImplementedError, "Implement me!"
+        return -0.5 * ((self.my_desired_val - self.my_input.output()) ** 2)
 
     def dOutdX(self, elem):
         """
@@ -236,7 +257,8 @@ class PerformanceElem(DifferentiableElement):
 
         returns: number (int/float)
         """
-        raise NotImplementedError, "Implement me!"
+        return ((self.my_desired_val - self.get_input().output())
+                * self.get_input().dOutdX(elem))
 
     def set_desired(self,new_desired):
         self.my_desired_val = new_desired
@@ -335,7 +357,31 @@ def make_neural_net_two_layer():
     See 'make_neural_net_basic' for required naming convention for inputs,
     weights, and neurons.
     """
-    raise NotImplementedError, "Implement me!"
+    i0 = Input('i0', -1.0)  # this input is immutable
+    i1 = Input('i1', 0.0)
+    i2 = Input('i2', 0.0)
+
+    w1A = Weight('w1A', 1)
+    w2A = Weight('w2A', 1)
+    wA = Weight('wA', 1)
+
+    w1B = Weight('w1B', 1)
+    w2B = Weight('w2B', 1)
+    wB = Weight('wB', 1)
+
+    wAC = Weight('wAC', 1)
+    wBC = Weight('wBC', 1)
+    wC = Weight('wC', 1)
+
+    # Inputs must be in the same order as their associated weights
+    A = Neuron('A', [i1, i2, i0], [w1A, w2A, wA])
+    B = Neuron('B', [i1, i2, i0], [w1B, w2B, wB])
+    C = Neuron('C', [A, B, i0], [wAC, wBC, wC])
+
+    P = PerformanceElem(A, 0.0)
+
+    net = Network(P, [A, B, C])
+    return net
 
 def make_neural_net_challenging():
     """
