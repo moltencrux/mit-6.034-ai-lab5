@@ -172,7 +172,7 @@ class Neuron(DifferentiableElement):
         """
         weighted_input_sum = 0
         for i, w in zip(self.get_inputs(), self.get_weights()):
-            weighted_input_sum += i.get_value() * w.get_value()
+            weighted_input_sum += i.output() * w.get_value()
         return 1.0 / (1.0 + math.exp(- weighted_input_sum))
 
     def dOutdX(self, elem):
