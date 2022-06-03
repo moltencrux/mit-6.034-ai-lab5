@@ -378,7 +378,7 @@ def make_neural_net_two_layer():
     B = Neuron('B', [i1, i2, i0], [w1B, w2B, wB])
     C = Neuron('C', [A, B, i0], [wAC, wBC, wC])
 
-    P = PerformanceElem(A, 0.0)
+    P = PerformanceElem(C, 0.0)
 
     net = Network(P, [A, B, C])
     return net
