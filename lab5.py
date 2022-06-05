@@ -69,7 +69,11 @@ def most_misclassified(classifier, n=5):
 	returns: list of data points (each passed through legislator_info) that were
 			 misclassified most often
     """
-    raise NotImplementedError
+    miss_rank = sorted(enumerate(classifier.data_weights),
+                       key=lambda l: abs(l[1]), reverse=True)
+    top_n_missed_index = [l[0] for l in miss_rank[:n]]
+
+    return [legislator_info(classifier.data[i]) for i in top_n_missed_index]
 
 # The following line is used by the tester; please leave it in place!
 most_misclassified_boost_1796 = lambda n: most_misclassified(boost_1796, n)
