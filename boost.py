@@ -160,8 +160,8 @@ class BoostClassifier(Classifier):
 
         returns: int (+1 or -1)
         """
-        # Fill me in! (the answer given is not correct!)
-        return 1
+        H = sum(alpha * h.classify(obj) for h, alpha in self.classifiers)
+        return (1 if H > 0 else -1)
 
     def orange_classify(self, obj):
         """
@@ -265,8 +265,15 @@ class BoostClassifier(Classifier):
 
         returns: Nothing (only updates self.data_weights)
         """
-        # Fill me in!
-        pass
+        new_weights = []
+
+        for datum, dweight in zip(self.data, self.data_weights):
+            if best_classifier.classify(datum) == self.standard.classify(datum):
+                new_weights.append(dweight / (2 * (1 - best_error)))
+            else:
+                new_weights.append(dweight / (2 * best_error))
+
+        self.data_weights = new_weights
 
     def __str__(self):
         classifier_part = '\n'.join(["%4.4f: %s" % (weight, c) for c, weight in

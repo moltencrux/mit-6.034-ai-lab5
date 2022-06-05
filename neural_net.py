@@ -482,7 +482,11 @@ def make_neural_net_with_weights():
     #                  'w2B' : 0.0,
     #                  .... # finish me!
     #
-    raise NotImplementedError, "Implement me!"
+    init_weights = {'w1A': 2.093236, 'wA': 3.499776, 'w1B': 4.254872,
+                    'w2B': -3.985469, 'wB': -5.913713, 'w2C': -1.985595, 'wC': -3.962190,
+                    'wAD': -5.423053, 'wBD': 7.808239, 'wCD': -5.071659, 'wD': 0.287917,
+                    'wDE': 10.902108, 'wBE': 3.314838, 'wE': 8.227676}
+
     return make_net_with_init_weights_from_dict(make_neural_net_challenging,
                                                 init_weights)
 
