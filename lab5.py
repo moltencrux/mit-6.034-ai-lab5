@@ -44,7 +44,7 @@ boost_1796.train(20)
 # does it predict a Republican would vote on the amendment to require
 # "newspapers to be sufficiently dried before mailing"? ('yes' or 'no')
 
-republican_newspaper_vote = 'answer yes or no'
+republican_newspaper_vote = 'no'
 
 # In the 4th House of Representatives, which five representatives were
 # misclassified the most while training your boost classifier?
@@ -87,7 +87,7 @@ most_misclassified_boost_1796 = lambda n: most_misclassified(boost_1796, n)
 boost = BoostClassifier(make_vote_classifiers(senate_votes), senate_people,
   standardPartyClassifier)
 boost.train(20)
-republican_sunset_vote = 'answer yes or no'
+republican_sunset_vote = 'no'
 
 # Which five Senators are the most misclassified after training your
 # classifier? (Again, the tester will test the function, not the answer you
