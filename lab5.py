@@ -4,12 +4,24 @@
 # Email:
 #
 from data_reader import *
+import sys
 from boost import *
 from orange_for_6034 import *
 from neural_net_data import *
 import neural_net
+import Orange
+from Orange.classification.svm import SVMLearner
+from Orange.classification.knn import KNNLearner
+from Orange.classification.tree import TreeLearner
+from Orange.classification import SimpleTreeLearner
+from Orange.classification.majority import MajorityLearner
+from Orange.classification.naive_bayes import NaiveBayesLearner
+from Orange.evaluation.scoring import CA, AUC, F1, MSE
+from Orange.evaluation.testing import CrossValidation
+from Orange.evaluation.scoring import confusion_matrix
 
-SVM_TYPE = orange.SVMLearner.C_SVC
+
+# SVM_TYPE = orange.SVMLearner.C_SVC # unecessary i think
 
 # Senate and House Data
 # These should be familiar by now.
@@ -109,86 +121,102 @@ def show_decisions(learner, data):
     total = 0
     for i in range(len(data)): # Test each of the same data points
         decision = classifier(data[i])
-        probabilities = classifier(data[i], orange.Classifier.GetProbabilities)
-        correct = (decision == data[i].getclass())
+        probabilities = classifier(data[i], classifier.ValueProbs) # ??? XXX maybe
+        correct = (decision == data[i].get_class())
         if correct:
             total += 1
         print(("    %d: %5.3f -> %s (should be %s) %scorrect" %
-               (i+1, probabilities[1], decision, data[i].getclass(),
+               (i+1, probabilities[1][1], decision, data[i].get_class(), #XXX not sure if its [1][1]
                 ("" if correct else "in"))))
     print("    accuracy on training data: %1.2f" % (float(total)/len(data)))
 
 def describe_and_classify(filename, learners):
-    data = orange.ExampleTable(filename)
-    print("Classes:",len(data.domain.classVar.values))
+    data = Orange.data.Table(filename)
+    print("Classes:",len(data.domain.class_var.values))
     print("Attributes:",len(data.domain.attributes))
 
     # obtain class distribution
-    c = [0] * len(data.domain.classVar.values)
+    c = [0] * len(data.domain.class_var.values)
     for e in data:
-        c[int(e.getclass())] += 1
+        c[int(e.get_class())] += 1
     print("Instances:", len(data), "total", end=' ')
-    for i in range(len(data.domain.classVar.values)):
-        print(",", c[i], "with class", data.domain.classVar.values[i], end=' ')
+    for i in range(len(data.domain.class_var.values)):
+        print(",", c[i], "with class", data.domain.class_var.values[i], end=' ')
     print()
-    print("Possible classes:", data.domain.classVar.values)
+    print("Possible classes:", data.domain.class_var.values)
 
     for name in learners:
         show_decisions(learners[name], data)
 
     print("Decision Tree boundaries:")
-    orngTree.printTxt(learners["dt"](data))
+    # XXX orngTree.printTxt(learners["dt"](data)) # maybe classifier.print_tree()
+    for ln in [learners["dt"](data)]: # maybe classifier.print_tree()
+        print(str(ln))
+    #     print(ln)
+    # https://orange3.readthedocs.io/projects/orange-data-mining-library/en/latest/reference/classification.html?highlight=Orange%20classifier%20classVar#support-vector-machines
 
     # Now we'll cross-validate with the same learners.
     print()
     print("Accuracy with cross-validation:")
 
 
-    classifiers = [learners[k] for k in learners]
-    results = orngTest.crossValidation(classifiers, data,
-                                       folds=min(10,len(data)))
+    classifiers_map = {name:learner(data) for name, learner in learners.items()}
+    classifiers = list(classifiers_map.values())
+    # results = orngTest.crossValidation(classifiers, data,
+    #                                    folds=min(10,len(data)))
+    results = CrossValidation(k=min(10, len(data)))(data, learners=list(learners.values()))
+    # results = CrossValidation(k=min(10, len(data)))(data, learners=classifiers)
 
-    confusion_matrices = orngStat.confusionMatrices(results)
+    # XXX confusion_matrices = orngStat.confusionMatrices(results)
+    # XXX confusion_matrices = [confusion_matrix(r) for r in results] #XXX probably gonna rash
     #f_scores   = orngStat.F1(confusion_matrices)
     # http://en.wikipedia.org/wiki/F_score
-    accuracies = orngStat.CA(results)
+    accuracies = CA(results)
     # http://en.wikipedia.org/wiki/Accuracy
-    brierscores= orngStat.BrierScore(results)
+    brierscores= MSE(results)
     # http://en.wikipedia.org/wiki/Brier_score
-    ROC_areas  = orngStat.AUC(results) # Area under the ROC curve
+    ROC_areas  = AUC(results) # Area under the ROC curve
     # http://en.wikipedia.org/wiki/ROC_curve
 
     # NOTE: many other measurements are available.
 
     print("  Confusion Matrices:")
-    for name in learners:
-        classifier = learners[name]
-        i = classifiers.index(classifier)
-        print("  %5s: %s" % (name, confusion_matrices[i]))
+    for name, classifier in classifiers_map.items():
+        try: # XXX this try statement is for testing
+            i = classifiers.index(classifier)
+        except ValueError as e:
+            pass
+            raise e
+        # XXX print("  %5s: %s" % (name, confusion_matrices[i]))
 
     print("  Classifier   accuracy   Brier       AUC")
-    for name in learners:
-        classifier = learners[name]
-        i = classifiers.index(classifier)
+    for name, classifier in classifiers_map.items():
+        try: # XXX this try statement is for testing
+            i = classifiers.index(classifier)
+        except ValueError as e:
+            pass
+            raise e
         print(("  %-12s %5.3f      %5.3f       %5.3f" %
                (name, accuracies[i], brierscores[i], ROC_areas[i])))
 
 # Note that it's the same declarations as above, just without the data
 
 learners = {
-    "maj" : orange.MajorityLearner(), # a useful baseline
-    "dt"  : orngTree.TreeLearner(sameMajorityPruning=1, mForPruning = 2),
-    "knn" : orange.kNNLearner(k = 10),
-    "svml": orange.SVMLearner(kernel_type = orange.SVMLearner.Linear,
-                              probability = True, svm_type=SVM_TYPE),
-    "svmp3":orange.SVMLearner(kernel_type = orange.SVMLearner.Polynomial,
-                              degree = 3,
-                              probability = True, svm_type=SVM_TYPE),
-    "svmr": orange.SVMLearner(kernel_type = orange.SVMLearner.RBF,
-                              probability = True, svm_type=SVM_TYPE),
-    "svms": orange.SVMLearner(kernel_type = orange.SVMLearner.Sigmoid,
-                              probability = True, svm_type=SVM_TYPE),
-    "nb": orange.BayesLearner(),
+    "maj" : MajorityLearner(), # a useful baseline
+    "dt"  : TreeLearner(sameMajorityPruning=1, mForPruning = 2), #  XXX not sure about these parameters.
+    # "dt"  : SimpleTreeLearner(),
+    "knn" : KNNLearner(n_neighbors=8),
+    "svml": SVMLearner(kernel='linear',
+                             probability = True),
+    "svmp3":SVMLearner(kernel='poly',
+                             degree = 3,
+                             probability = True),
+    "svmr": SVMLearner(kernel='rbf',
+                              probability = True),
+    "svms": SVMLearner(kernel='sigmoid',
+                              probability = True),
+    "nb": NaiveBayesLearner(),
+
 
     #"boost":orngEnsemble.BoostedLearner(orngTree.TreeLearner()),
     # http://www.ailab.si/orange/doc/modules/orngEnsemble.htm
@@ -207,8 +235,9 @@ learners["nb"].name = "Naive Bayes classifier"
 #FIXME: learners["034b"].name = "Our boosting classifier for party id datasets"
 #learners["boost"].name = "Boosted decision trees classifier"
 
-
 if __name__ == "__main__":
+    for key in ['knn']:  # XXX testing to fix an exception on CA(results)
+        del (learners[key])
     describe_and_classify("vampires", learners)
 
 
@@ -249,9 +278,8 @@ most_divisive_h004 = '2'
 # boosting the results of the classifiers we already have!
 
 
-
 def boosted_ensemble(filename, learners, standard, verbose=False):
-    data = orange.ExampleTable(filename)
+    data = Orange.data.Table(filename)
     ensemble_learner = BoostOrangeLearner(learners, standard)
 
     if verbose:
@@ -260,11 +288,14 @@ def boosted_ensemble(filename, learners, standard, verbose=False):
         classifier = ensemble_learner(data)
         print("ensemble classifier: %s" %(classifier))
 
-    ensemble_crossval = orngTest.crossValidation([ensemble_learner], data,
-                                                 folds=min(10,len(data)))
-    accuracies = orngStat.CA(ensemble_crossval)
-    brierscores= orngStat.BrierScore(ensemble_crossval)
-    ROC_areas  = orngStat.AUC(ensemble_crossval)
+    # XXX Orange.evaluation.testing.CrossValidation
+    ensemble_crossval = CrossValidation(k=min(10, len(data)))(data,
+                                                              learners=[ensemble_learner])
+    # ensemble_crossval = orngTest.crossValidation([ensemble_learner], data,
+    #                                              folds=min(10,len(data)))
+    accuracies = CA(ensemble_crossval)
+    brierscores= MSE(ensemble_crossval)
+    ROC_areas  = AUC(ensemble_crossval)
     return accuracies[0], brierscores[0], ROC_areas[0]
 
 DATASET_STANDARDS={
@@ -281,11 +312,15 @@ DATASET_STANDARDS={
 
 if __name__ == "__main__":
     dataset = "H004"
-
-    describe_and_classify(dataset, learners)
-    print "Boosting with our suite of orange classifiers:"
-    print ("  accuracy: %.3f, brier: %.3f, auc: %.3f" %
-           boosted_ensemble(dataset, learners, DATASET_STANDARDS[dataset]))
+    if len(sys.argv) > 1:
+        datasets = sys.argv[1:]
+    else:
+        datasets = [dataset]
+    for dataset in datasets:
+        describe_and_classify(dataset, learners)
+        print ("Boosting with our suite of orange classifiers:")
+        print ("  accuracy: %.3f, brier: %.3f, auc: %.3f" %
+            boosted_ensemble(dataset, learners, DATASET_STANDARDS[dataset]))
 
 
 # Play with the datasets mentioned above.  What ensemble of classifiers
@@ -294,6 +329,7 @@ if __name__ == "__main__":
 
 classifiers_for_best_ensemble = ['maj', 'nb', 'svml', 'svmp3', 'svmr']
 
+classifiers_for_best_ensemble = ['maj']
 
 
 ## The standard survey questions.

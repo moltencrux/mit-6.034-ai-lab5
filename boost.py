@@ -1,7 +1,8 @@
 from data_reader import *
 import math
 import orange_for_6034
-import orange
+import Orange
+import Orange.base
 
 class Classifier():
     """
@@ -318,30 +319,33 @@ class OrangeWrapperClassifier(Classifier):
 
 #>
 #< BoostOrangeClassifier
-
-class BoostOrangeClassifier(orange.Classifier):
+# class BoostOrangeClassifier(Orange.Classifier):
+class BoostOrangeClassifier(Orange.base.Model):  # just to get it running XXX
     def __init__(self, domain, classifier):
-        self.classVar = domain.classVar
+        # self.classVar = domain.classVar #XXX data.domain.class_var.values
+        self.classVar = domain.class_var.values #XXX data.domain.class_var.values
         self.classifier = classifier
-    def __call__(self, example, what = orange.Classifier.GetValue):
+    def __call__(self, example, ret=Orange.base.Model.Value):
         probability = self.classifier.orange_classify(example)
 
-        answer = orange.Value(self.classVar, int(round(probability)))
-        probabilities = orange.DiscDistribution(self.classVar)
+        # XXX answer = Orange.Value(self.classVar, int(round(probability)))
+        answer = Orange.Value(self.classVar, int(round(probability)))
+        probabilities = Orange.DiscDistribution(self.classVar)
         probabilities[answer] = probability
-        if what == orange.Classifier.GetValue:
+        if ret == Orange.base.Model.Value:
             return answer
-        elif what == orange.Classifier.GetProbabilities:
+        elif ret == Orange.base.Model.Probs:
             return probabilities
         else:
             return answer, probabilities
+
     def __str__(self):
         return str(self.classifier)
 
 #>
 #< BoostOrangeLearner
 
-class BoostOrangeLearner(orange.Learner):
+class BoostOrangeLearner(Orange.base.Learner):
     # the BoostClassifier above is already a Learner in the Orange sense,
     # because Orange separates the training (Learner) from the classification,
     # but the BoostClassifier combines them.
@@ -353,7 +357,7 @@ class BoostOrangeLearner(orange.Learner):
         # FIXME: I have no idea what weightID is supposed to do.  :-/
         classifiers = []
         ourdata = data
-        if isinstance(self.learners[self.learners.keys()[0]], orange.Learner):
+        if isinstance(self.learners[self.learners.keys()[0]], Orange.base.Learner):
             classifiers = [OrangeWrapperClassifier(self.learners[i](data))
                            for i in self.learners]
         else:
