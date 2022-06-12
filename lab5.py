@@ -279,13 +279,48 @@ DATASET_STANDARDS={
     "adult" : OrangeStandardClassifier(">50K") # this is big -- optional!
     }
 
-if __name__ == "__main__":
-    dataset = "H004"
+def gen_powerset(lst):
+    for r in range(1, len(lst) + 1):
+        for c in combinations(lst, r):
+            yield tuple(sorted(c))
 
-    describe_and_classify(dataset, learners)
-    print "Boosting with our suite of orange classifiers:"
-    print ("  accuracy: %.3f, brier: %.3f, auc: %.3f" %
-           boosted_ensemble(dataset, learners, DATASET_STANDARDS[dataset]))
+
+if __name__ == "__main__":
+    # dataset = "H004"
+    rank_map = {}
+    from itertools import combinations
+
+    dataset = "breast-cancer"
+
+    for learner_labels in gen_powerset(["maj", "dt", "knn", "svml", "svmp3",
+					"svmr", "svms", "nb"]):
+        subset = {k:learners[k] for k in learner_labels}
+        acc, brier, auc = boosted_ensemble(dataset, subset, DATASET_STANDARDS[dataset])
+        rank_map[learner_labels] = acc
+
+    rlist = sorted(list(rank_map.keys()), key=lambda x: rank_map[x], reverse=True)
+
+    for k in rlist:
+        print 'combo : %s score %f' %(str(k), rank_map[k])
+
+# top learner combos
+# combo : ('maj', 'nb', 'svml', 'svmp3', 'svmr') score 0.730788
+# combo : ('maj', 'nb', 'svml', 'svmr', 'svms') score 0.730788
+# combo : ('maj', 'nb', 'svml', 'svmp3', 'svmr', 'svms') score 0.730788
+# combo : ('nb', 'svml', 'svmp3', 'svmr', 'svms') score 0.730788
+# combo : ('nb', 'svml', 'svmp3', 'svms') score 0.727217
+# combo : ('maj', 'nb', 'svmp3', 'svms') score 0.727217
+# combo : ('nb', 'svmp3', 'svms') score 0.727217
+# combo : ('maj', 'nb', 'svml', 'svmp3') score 0.727217
+# combo : ('maj', 'nb', 'svml', 'svmp3', 'svms') score 0.727217
+# combo : ('nb', 'svml', 'svmp3') score 0.727217
+
+    
+
+    # describe_and_classify(dataset, learners)
+    # print "Boosting with our suite of orange classifiers:"
+    # print ("  accuracy: %.3f, brier: %.3f, auc: %.3f" %
+    #        boosted_ensemble(dataset, learners, DATASET_STANDARDS[dataset]))
 
 
 # Play with the datasets mentioned above.  What ensemble of classifiers
