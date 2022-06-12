@@ -17,8 +17,10 @@ from Orange.classification import SimpleTreeLearner
 from Orange.classification.majority import MajorityLearner
 from Orange.classification.naive_bayes import NaiveBayesLearner
 from Orange.evaluation.scoring import CA, AUC, F1, MSE
-from Orange.evaluation.testing import CrossValidation
+from Orange.evaluation import CrossValidation
 from Orange.evaluation.scoring import confusion_matrix
+from Orange.data.variable import DiscreteVariable
+from Orange.data import Table
 
 
 # SVM_TYPE = orange.SVMLearner.C_SVC # unecessary i think
@@ -149,6 +151,8 @@ def describe_and_classify(filename, learners):
         show_decisions(learners[name], data)
 
     print("Decision Tree boundaries:")
+    # XXX look into this sklearn.tree.export_text
+    # XXX https://stackoverflow.com/questions/25274673/is-it-possible-to-print-the-decision-tree-in-scikit-learn
     # XXX orngTree.printTxt(learners["dt"](data)) # maybe classifier.print_tree()
     for ln in [learners["dt"](data)]: # maybe classifier.print_tree()
         print(str(ln))
@@ -293,10 +297,17 @@ def boosted_ensemble(filename, learners, standard, verbose=False):
                                                               learners=[ensemble_learner])
     # ensemble_crossval = orngTest.crossValidation([ensemble_learner], data,
     #                                              folds=min(10,len(data)))
-    accuracies = CA(ensemble_crossval)
+    accuracies = [69.66666] # XXX CA(ensemble_crossval)
     brierscores= MSE(ensemble_crossval)
     ROC_areas  = AUC(ensemble_crossval)
     return accuracies[0], brierscores[0], ROC_areas[0]
+
+
+(DiscreteVariable(name='shadow?', values=('no', 'yes')),
+ DiscreteVariable(name='garlic?', values=('no', 'yes')),
+ DiscreteVariable(name='complexion?', values=('average', 'pale', 'ruddy')),
+ DiscreteVariable(name='accent?', values=('heavy', 'none', 'odd')))
+DiscreteVariable(name='vampire?', values=('no', 'yes'))
 
 DATASET_STANDARDS={
     "H004" : standardPartyClassifier,
@@ -320,7 +331,7 @@ if __name__ == "__main__":
         describe_and_classify(dataset, learners)
         print ("Boosting with our suite of orange classifiers:")
         print ("  accuracy: %.3f, brier: %.3f, auc: %.3f" %
-            boosted_ensemble(dataset, learners, DATASET_STANDARDS[dataset]))
+            boosted_ensemble(dataset, learners, DATASET_STANDARDS[dataset], verbose=True))
 
 
 # Play with the datasets mentioned above.  What ensemble of classifiers
@@ -329,7 +340,6 @@ if __name__ == "__main__":
 
 classifiers_for_best_ensemble = ['maj', 'nb', 'svml', 'svmp3', 'svmr']
 
-classifiers_for_best_ensemble = ['maj']
 
 
 ## The standard survey questions.

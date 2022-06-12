@@ -2,6 +2,7 @@ from data_reader import *
 import math
 import orange_for_6034
 import Orange
+import Orange.classification
 import Orange.base
 
 class Classifier():
@@ -320,14 +321,21 @@ class OrangeWrapperClassifier(Classifier):
 #>
 #< BoostOrangeClassifier
 # class BoostOrangeClassifier(Orange.Classifier):
-class BoostOrangeClassifier(Orange.base.Model):  # just to get it running XXX
+class BoostOrangeModel(Orange.classification.Model):  # just to get it running XXX
     def __init__(self, domain, classifier):
         # self.classVar = domain.classVar #XXX data.domain.class_var.values
         self.classVar = domain.class_var.values #XXX data.domain.class_var.values
         self.classifier = classifier
+        self.calldict = {}
+        # XXX
+        booster = BoostClassifier(classifiers, data, self.standard)
+        booster.train(len(classifiers), verbose = False)
+
+    '''
     def __call__(self, example, ret=Orange.base.Model.Value):
         probability = self.classifier.orange_classify(example)
 
+        print('XXXXXXXX  BOC __call__ XXXXXXXXXXXXXXX')
         # XXX answer = Orange.Value(self.classVar, int(round(probability)))
         answer = Orange.Value(self.classVar, int(round(probability)))
         probabilities = Orange.DiscDistribution(self.classVar)
@@ -338,6 +346,15 @@ class BoostOrangeClassifier(Orange.base.Model):  # just to get it running XXX
             return probabilities
         else:
             return answer, probabilities
+    '''
+
+    def predict(self, X):
+        # do we need to translate X here? What does an instance of BoostClassifier expect?
+        # orange_classify takes an obj, so it's probably just arbitrary.. but seems like it
+        # needs to key it somehow. it passes the obj to each of its classifiers.  then what
+        # do the individual classifiers take?  OSC just compares obj.getclass() & self.value
+        # so seems it's initialized
+        return
 
     def __str__(self):
         return str(self.classifier)
@@ -345,19 +362,21 @@ class BoostOrangeClassifier(Orange.base.Model):  # just to get it running XXX
 #>
 #< BoostOrangeLearner
 
-class BoostOrangeLearner(Orange.base.Learner):
+class BoostOrangeLearner(Orange.classification.Learner):
     # the BoostClassifier above is already a Learner in the Orange sense,
     # because Orange separates the training (Learner) from the classification,
     # but the BoostClassifier combines them.
     def __init__(self, learners, standard):
+        super().__init__()
         self.learners = learners
         self.standard = standard
 
+    '''
     def __call__(self, data, weightID=0):
         # FIXME: I have no idea what weightID is supposed to do.  :-/
         classifiers = []
         ourdata = data
-        if isinstance(self.learners[self.learners.keys()[0]], Orange.base.Learner):
+        if isinstance((*self.learners.values(),)[0], Orange.base.Learner):
             classifiers = [OrangeWrapperClassifier(self.learners[i](data))
                            for i in self.learners]
         else:
@@ -365,7 +384,23 @@ class BoostOrangeLearner(Orange.base.Learner):
         booster = BoostClassifier(classifiers, data, self.standard)
         booster.train(len(classifiers), verbose = False)
         return BoostOrangeClassifier(data.domain, booster)
+    '''
 
+    def fit_storage(self, data):
+        classifiers = []
+
+        for learner in self.learners.values():
+            if isinstance(learner, Orange.base.Learner):
+                classifiers.append(OrangeWrapperClassifier(learner(data)))
+            else:
+                classifiers.append(learner) # maybe need to initialize a standard Learner/classifier
+                # or translate data
+
+        booster = BoostOrangeModel(self, data, classifiers, self.standard)
+        booster.train(len(classifiers), verbose = False)
+        return booster
+
+BoostOrangeLearner.__returns__ = BoostOrangeModel  # XXX modeled after Orange source
 #>
 #< OrangeStandardClassifier
 
@@ -400,6 +435,7 @@ class OrangeStandardClassifier(Classifier):
         If this object's class matches the given value, return +1. Otherwise,
         return 0.
         """
+        # Orange.data.variable.Value, v.value
         if obj.getclass() == self.value: return 1
         else: return 0
 
