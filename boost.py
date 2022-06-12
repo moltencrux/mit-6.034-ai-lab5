@@ -176,8 +176,8 @@ class BoostClassifier(Classifier):
 
         returns: float (between 0 and 1)
         """
-        # Fill me in! (the answer given is not correct!)
-        return 1
+        H = sum(alpha * h.classify(obj) for h, alpha in self.classifiers)
+        return sigmoid(H)
 
     def best_classifier(self):
         """
