@@ -292,8 +292,7 @@ if __name__ == "__main__":
 # will give you the best cross-validation accuracy on the breast-cancer
 # dataset?
 
-classifiers_for_best_ensemble = ['maj', 'dt', 'knn', 'svml',
-                                 'svmp3', 'svmr', 'svms', 'nb']
+classifiers_for_best_ensemble = ['maj', 'nb', 'svml', 'svmp3', 'svmr']
 
 
 
