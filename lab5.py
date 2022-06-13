@@ -9,7 +9,7 @@ from orange_for_6034 import *
 from neural_net_data import *
 import neural_net
 
-SVM_TYPE = orange.SVMLearner.C_SVC
+# SVM_TYPE = orange.SVMLearner.C_SVC # XXX
 
 # Senate and House Data
 # These should be familiar by now.
@@ -175,6 +175,7 @@ def describe_and_classify(filename, learners):
 
 # Note that it's the same declarations as above, just without the data
 
+''' # XXX
 learners = {
     "maj" : orange.MajorityLearner(), # a useful baseline
     "dt"  : orngTree.TreeLearner(sameMajorityPruning=1, mForPruning = 2),
@@ -206,6 +207,7 @@ learners["svms"].name = "Support Vector Machine classifier with sigmoid kernel"
 learners["nb"].name = "Naive Bayes classifier"
 #FIXME: learners["034b"].name = "Our boosting classifier for party id datasets"
 #learners["boost"].name = "Boosted decision trees classifier"
+''' # XXX
 
 
 if __name__ == "__main__":
@@ -282,10 +284,12 @@ DATASET_STANDARDS={
 if __name__ == "__main__":
     dataset = "H004"
 
+    ''' # XXX
     describe_and_classify(dataset, learners)
     print "Boosting with our suite of orange classifiers:"
     print ("  accuracy: %.3f, brier: %.3f, auc: %.3f" %
            boosted_ensemble(dataset, learners, DATASET_STANDARDS[dataset]))
+''' # XXX
 
 
 # Play with the datasets mentioned above.  What ensemble of classifiers
