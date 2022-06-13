@@ -35,10 +35,10 @@ class DifferentiableElement(object):
     parts that require some differentiable element.
     """
     def output(self):
-        raise NotImplementedError, "This is an abstract method"
+        raise NotImplementedError("This is an abstract method")
 
     def dOutdX(self, elem):
-        raise NotImplementedError, "This is an abstract method"
+        raise NotImplementedError("This is an abstract method")
 
     def clear_cache(self):
         """clears any precalculated cached value"""
@@ -113,14 +113,14 @@ class Neuron(DifferentiableElement):
             self.my_descendant_weights = {}
             inputs = self.get_inputs()
             weights = self.get_weights()
-            for i in xrange(len(weights)):
+            for i in range(len(weights)):
                 weight = weights[i]
                 weight_name = weight.get_name()
                 self.my_descendant_weights[weight_name] = set()
                 input = inputs[i]
                 if not isinstance(input, Input):
                     descendants = input.get_descendant_weights()
-                    for name, s in descendants.items():
+                    for name, s in list(descendants.items()):
                         st = self.my_descendant_weights[weight_name]
                         st = st.union(s)
                         st.add(name)
@@ -272,7 +272,7 @@ class Network(object):
         self.performance = performance_node
         self.output = performance_node.get_input()
         self.neurons = neurons[:]
-        self.neurons.sort(cmp=alphabetize)
+        self.neurons.sort(key=lambda x: x.get_name())
         for neuron in self.neurons:
             self.weights.extend(neuron.get_weights())
             for i in neuron.get_inputs():
@@ -506,7 +506,7 @@ def make_net_with_init_weights_from_list(net_fn,init_weights):
 def abs_mean(values):
     """Compute the mean of the absolute values a set of numbers.
     For computing the stopping condition for training neural nets"""
-    abs_vals = map(lambda x: abs(x), values)
+    abs_vals = [abs(x) for x in values]
     total = sum(abs_vals)
     return total / float(len(abs_vals))
 
@@ -527,7 +527,7 @@ def train(network,
         performances = []  # store performance on each data point
         for datum in data:
             # set network inputs
-            for i in xrange(len(network.inputs)):
+            for i in range(len(network.inputs)):
                 network.inputs[i].set_value(datum[i])
 
             # set network desired output
@@ -556,18 +556,18 @@ def train(network,
 
         if abs_mean_performance < target_abs_mean_performance:
             if verbose:
-                print "iter %d: training complete.\n"\
+                print("iter %d: training complete.\n"\
                       "mean-abs-performance threshold %s reached (%1.6f)"\
                       %(iteration,
                         target_abs_mean_performance,
-                        abs_mean_performance)
+                        abs_mean_performance))
             break
 
         iteration += 1
         if iteration % 1000 == 0 and verbose:
-            print "iter %d: mean-abs-performance = %1.6f"\
+            print("iter %d: mean-abs-performance = %1.6f"\
                   %(iteration,
-                    abs_mean_performance)
+                    abs_mean_performance))
 
 
 def test(network, data, verbose=False):
@@ -587,15 +587,15 @@ def test(network, data, verbose=False):
         if round(result)==datum[-1]:
             correct+=1
             if verbose:
-                print "test(%s) returned: %s => %s [%s]" %(str(datum),
+                print("test(%s) returned: %s => %s [%s]" %(str(datum),
                                                            str(result),
                                                            rounded_result,
-                                                           "correct")
+                                                           "correct"))
         else:
             if verbose:
-                print "test(%s) returned: %s => %s [%s]" %(str(datum),
+                print("test(%s) returned: %s => %s [%s]" %(str(datum),
                                                            str(result),
                                                            rounded_result,
-                                                           "wrong")
+                                                           "wrong"))
 
     return float(correct)/len(data)

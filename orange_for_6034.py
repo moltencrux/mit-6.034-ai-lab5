@@ -31,9 +31,9 @@ from data_reader import *
 def funcToMethod(func,clas,method_name=None):
     """Adds func to class so it is an accessible method; use method_name to specify the name to be used for calling the method.
     The new method is accessible to any instance immediately."""
-    func.im_class=clas
-    func.im_func=func
-    func.im_self=None
+    func.__self__.__class__=clas
+    func.__func__=func
+    func.__self__=None
     if not method_name: method_name=func.__name__
     clas.__dict__[method_name]=func
 
@@ -54,19 +54,19 @@ def write_congress_data(legislators, filename,
     num_votes = len(legislators[0]['votes'])
     if descriptions:
         if len(descriptions) != len(legislators[0]['votes']):
-            print ("%s: %d != %d" %
-                   (filename, len(descriptions), len(legislators[0]['votes'])))
-            print descriptions[0]
-        print >>f, "party\t" + "\t".join([bill_identifier(v)
-                                          for v in descriptions])
+            print(("%s: %d != %d" %
+                   (filename, len(descriptions), len(legislators[0]['votes']))))
+            print(descriptions[0])
+        print("party\t" + "\t".join([bill_identifier(v)
+                                          for v in descriptions]), file=f)
     else:
-        print >>f, "party\t" + "\t".join(map(str,xrange(num_votes)))
-    print >>f, "\t".join(["discrete" for i in xrange(num_votes+1)])
-    print >>f, "\t".join(["" for i in xrange(-1, unknown_column)]),
-    print >>f, "class\t",
-    print >>f, "\t".join(["" for i in xrange(unknown_column+1, num_votes)])
+        print("party\t" + "\t".join(map(str,range(num_votes))), file=f)
+    print("\t".join(["discrete" for i in range(num_votes+1)]), file=f)
+    print("\t".join(["" for i in range(-1, unknown_column)]), end=' ', file=f)
+    print("class\t", end=' ', file=f)
+    print("\t".join(["" for i in range(unknown_column+1, num_votes)]), file=f)
     for legislator in legislators:
-        print >>f, legislator['party'] + "\t" + "\t".join(map(str,legislator['votes']))
+        print(legislator['party'] + "\t" + "\t".join(map(str,legislator['votes'])), file=f)
 
 
 if __name__ == "__main__":

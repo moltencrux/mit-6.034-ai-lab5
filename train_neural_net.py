@@ -33,15 +33,15 @@ momentum = 0.0, epsilon_error = 0.00001, max_train_epochs = 200000, verbose = Fa
     started_converging = False
 
     prev_mean_err = None
-    for count in xrange(max_train_epochs/epoch_step_size):
+    for count in range(max_train_epochs/epoch_step_size):
         mean_err = net.train(examples, iterations = epoch_step_size, N = learning_rate, M = momentum)
         if prev_mean_err is None: prev_mean_err = mean_err
 
         if abs(prev_mean_err-mean_err) < epsilon_error:
             if started_converging:
                 if verbose:
-                    print "Finished after %d epochs" %\
-                    (count*epoch_step_size)
+                    print("Finished after %d epochs" %\
+                    (count*epoch_step_size))
 
                 return count            
         else:
@@ -49,11 +49,11 @@ momentum = 0.0, epsilon_error = 0.00001, max_train_epochs = 200000, verbose = Fa
         prev_mean_err = mean_err
 
         if verbose:
-            print "%d epochs, with a mean error of %s" % (count*epoch_step_size, mean_err)
+            print("%d epochs, with a mean error of %s" % (count*epoch_step_size, mean_err))
 
             
     if verbose:
-        print "Failed to converge after %d epochs" % max_train_epochs
+        print("Failed to converge after %d epochs" % max_train_epochs)
 
     return False
 

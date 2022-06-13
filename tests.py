@@ -184,7 +184,7 @@ def classifier_tester_2_getargs():
 def classifier_tester_2_testanswer(val, original_val = None):
     if abs(val[0]-.0098) > .0001: return False
 
-    for x in xrange(10,len(val)):
+    for x in range(10,len(val)):
         if val[x] > .0001:
             return False
 
@@ -291,7 +291,7 @@ def classifiers_for_best_ensemble_testanswer(val, original_val = None):
     accuracy, brier, auc = \
         boosted_ensemble("breast-cancer", subset,
                          DATASET_STANDARDS["breast-cancer"])
-    print "Accuracy with best classifiers: "+str(accuracy)
+    print("Accuracy with best classifiers: "+str(accuracy))
     return (accuracy > .74)
 
 make_test(type = 'VALUE',

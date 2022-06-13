@@ -252,7 +252,7 @@ class BoostClassifier(Classifier):
         self.renormalize_weights()
         best_classifier, best_error = self.best_classifier()
         if verbose:
-            print "[error=%4.4f]" % best_error, best_classifier
+            print("[error=%4.4f]" % best_error, best_classifier)
         self.update_weights(best_error, best_classifier)
         self.classifiers.append((best_classifier, error_to_alpha(best_error)))
 

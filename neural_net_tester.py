@@ -19,17 +19,17 @@ from neural_net_data import simple_data_sets,\
 def main(neural_net_func, data_sets, max_iterations=10000):
     verbose = True
     for name, training_data, test_data in data_sets:
-        print "-"*40
-        print "Training on %s data" %(name)
+        print("-"*40)
+        print("Training on %s data" %(name))
         nn = neural_net_func()
         train(nn, training_data, max_iterations=max_iterations,
               verbose=verbose)
-        print "Trained weights:"
+        print("Trained weights:")
         for w in nn.weights:
-            print "Weight '%s': %f"%(w.get_name(),w.get_value())
-        print "Testing on %s test-data" %(name)
+            print("Weight '%s': %f"%(w.get_name(),w.get_value()))
+        print("Testing on %s test-data" %(name))
         result = test(nn, test_data, verbose=verbose)
-        print "Accuracy: %f"%(result)
+        print("Accuracy: %f"%(result))
 
 if __name__=="__main__":
     test_names = ["simple"]
@@ -62,4 +62,4 @@ if __name__=="__main__":
             # the patchy problem it can converge very quickly.
             main(make_neural_net_with_weights, manual_weight_data_sets,100)
         else:
-            print "unrecognized test name %s" %(test_name)
+            print("unrecognized test name %s" %(test_name))

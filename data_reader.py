@@ -88,7 +88,7 @@ def read_vote_data(filename):
     return votes
 
 def limit_votes(legislators, votes, n):
-    indices = [i for i in xrange(len(legislators[0]['votes'])-1, -1, -1) if
+    indices = [i for i in range(len(legislators[0]['votes'])-1, -1, -1) if
     is_interesting(votes[i])][:n]
 
     newleg = []
